@@ -3,7 +3,7 @@ import torch
 import argparse
 from torch import nn, optim
 from torch.utils.data import DataLoader
-from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
 from transformers import ViTForImageClassification
