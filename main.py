@@ -1,5 +1,6 @@
 from typing import Tuple
 import torch
+import argparse
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torch.cuda.amp import autocast, GradScaler
@@ -11,13 +12,26 @@ from torchvision import datasets, transforms
 from tlora.utils import replace_attention_layers
 from tlora.modified_layers import ModifiedViTSdpaSelfAttention
 
-# Constants
-BATCH_SIZE = 128
-NUM_EPOCHS = 20
-LEARNING_RATE = 1e-4
-WEIGHT_DECAY = 1e-2
-NUM_WORKERS = 4
-SEED = 123
+
+def parse_args():
+    """Parse command-line arguments with default values"""
+    parser = argparse.ArgumentParser(description='Train ViT with TLoRA')
+    
+    parser.add_argument('--batch-size', type=int, default=128,
+                       help='Input batch size for training (default: 128)')
+    parser.add_argument('--num-epochs', type=int, default=20,
+                       help='Number of epochs to train (default: 20)')
+    parser.add_argument('--learning-rate', type=float, default=1e-4,
+                       help='Learning rate (default: 1e-4)')
+    parser.add_argument('--weight-decay', type=float, default=1e-2,
+                       help='Weight decay (default: 1e-2)')
+    parser.add_argument('--num-workers', type=int, default=4,
+                       help='Number of workers for data loading (default: 4)')
+    parser.add_argument('--seed', type=int, default=123,
+                       help='Random seed (default: 123)')
+    
+    return parser.parse_args()
+
 
 def set_seed(seed: int):
     """Set random seed for reproducibility"""
@@ -124,16 +138,18 @@ def evaluate(model: nn.Module, loader: DataLoader,
     return total_loss / len(loader.dataset), correct / len(loader.dataset)
 
 def main():
+    args = parse_args()
+
     # Initialization
-    set_seed(SEED)
+    set_seed(args.seed)
     device = get_device()
     
     # Data loading
     train_set, test_set = create_datasets()
-    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True,
-                             num_workers=NUM_WORKERS, pin_memory=True)
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE*2,
-                            num_workers=NUM_WORKERS, pin_memory=True)
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
+                             num_workers=args.num_workers, pin_memory=True)
+    test_loader = DataLoader(test_set, batch_size=args.batch_size*2,
+                            num_workers=args.num_workers, pin_memory=True)
     
     # Model setup
     model = create_model(device)
@@ -142,18 +158,18 @@ def main():
     # Optimization setup
     optimizer = optim.AdamW(
         filter(lambda p: p.requires_grad, model.parameters()),
-        lr=LEARNING_RATE,
-        weight_decay=WEIGHT_DECAY
+        lr=args.learning_rate,
+        weight_decay=args.weight_decay
     )
-    scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
+    scheduler = CosineAnnealingLR(optimizer, T_max=args.num_epochs)
     criterion = nn.CrossEntropyLoss()
     scaler = GradScaler()
     
     best_acc = 0.0
     
     # Training loop
-    for epoch in range(1, NUM_EPOCHS+1):
-        print(f"\nEpoch {epoch}/{NUM_EPOCHS}")
+    for epoch in range(1, args.num_epochs+1):
+        print(f"\nEpoch {epoch}/{args.num_epochs}")
         
         # Training
         train_loss = train_epoch(model, train_loader, optimizer, scheduler, 
