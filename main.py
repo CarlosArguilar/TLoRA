@@ -102,7 +102,7 @@ def train_epoch(model: nn.Module, loader: DataLoader,
     for inputs, labels in tqdm(loader, desc="Training", leave=False):
         inputs, labels = inputs.to(device), labels.to(device)
         
-        with autocast(enabled=(device.type == str(model.device))):
+        with autocast(device_type=(str(model.device))):
             outputs = model(inputs)
             loss = criterion(outputs.logits, labels)
         
@@ -127,7 +127,7 @@ def evaluate(model: nn.Module, loader: DataLoader,
     for inputs, labels in tqdm(loader, desc="Evaluating", leave=False):
         inputs, labels = inputs.to(device), labels.to(device)
         
-        with autocast(enabled=(device.type == str(model.device))):
+        with autocast(device_type=(str(model.device))):
             outputs = model(inputs)
             loss = criterion(outputs.logits, labels)
         
