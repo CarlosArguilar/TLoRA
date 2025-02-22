@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from tlora.tensor_factorization import FactorizedTensor
 
 class ModifiedViTSdpaSelfAttention(ViTSelfAttention):
-    def __init__(self, config: ViTConfig, factorization: str = "cp", rank: int = 8):
+    def __init__(self, config: ViTConfig, factorization: str = "tucker", rank: int = 8):
         super().__init__(config)
         self.attention_probs_dropout_prob = config.attention_probs_dropout_prob
 

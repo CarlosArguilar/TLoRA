@@ -19,6 +19,8 @@ class FactorizedTensor(ABC, nn.Module):
         if factorization_type not in cls._registry:
             raise ValueError(f"Unsupported factorization: {factorization_type}. "
                              f"Available: {list(cls._registry.keys())}")
+        
+        print(f'Using {factorization_type} factorization')
         return cls._registry[factorization_type](hidden_size, rank, **kwargs)
 
     def __init__(self, hidden_size: int, rank: int):
