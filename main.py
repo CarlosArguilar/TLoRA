@@ -29,6 +29,8 @@ def parse_args():
                        help='Number of workers for data loading (default: 4)')
     parser.add_argument('--seed', type=int, default=123,
                        help='Random seed (default: 123)')
+    parser.add_argument('--checkpoint-path', type=str, default=None,
+                       help='Path to load checkpoint (default: None)')
     
     return parser.parse_args()
 
@@ -63,7 +65,7 @@ def create_datasets() -> Tuple[datasets.CIFAR10, datasets.CIFAR10]:
         datasets.CIFAR10(root='./data', train=False, download=True, transform=test_transform)
     )
 
-def create_model(device: torch.device) -> ViTForImageClassification:
+def create_model(device: torch.device, args) -> ViTForImageClassification:
     """Create and configure ViT model with LoRA modifications"""
     model = ViTForImageClassification.from_pretrained("google/vit-base-patch16-224")
     
@@ -72,6 +74,15 @@ def create_model(device: torch.device) -> ViTForImageClassification:
     
     # Replace final classifier
     model.classifier = nn.Linear(768, 10)
+
+    if args.checkpoint_path:
+        print(f"Loading model from checkpoint: {args.checkpoint_path}")
+        
+        # Load the checkpoint
+        checkpoint = torch.load(args.checkpoint_path, map_location=device)
+        
+        # Load the state dict into the model
+        model.load_state_dict(checkpoint['model_state_dict'])
     
     # Freeze all parameters except factorization and classifier
     for param in model.parameters():
@@ -152,7 +163,7 @@ def main():
                             num_workers=args.num_workers, pin_memory=True)
     
     # Model setup
-    model = create_model(device)
+    model = create_model(device, args)
     print_trainable_params(model)
     
     # Optimization setup
