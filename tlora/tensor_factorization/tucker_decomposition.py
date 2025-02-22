@@ -14,8 +14,7 @@ class TuckerFactorizedTensor(FactorizedTensor, factorization_type="tucker"):
         self.U = nn.Parameter(torch.zeros(hidden_size, rank))
         self.V = nn.Parameter(torch.zeros(hidden_size, rank))
 
-        # Initialize with orthogonal matrices
-        nn.init.orthogonal_(self.core)
+        # Initialize with orthogonal matrices and leave core as zeros
         nn.init.orthogonal_(self.U)
         nn.init.orthogonal_(self.V)
 
