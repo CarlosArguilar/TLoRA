@@ -12,6 +12,7 @@ from torchvision import datasets, transforms
 from tlora.utils import replace_attention_layers
 from tlora.modified_layers import ModifiedViTSdpaSelfAttention
 
+torch.backends.cudnn.benchmark = True
 
 def parse_args():
     """Parse command-line arguments with default values"""
