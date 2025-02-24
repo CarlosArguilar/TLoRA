@@ -32,7 +32,7 @@ def parse_args():
                        help='Random seed (default: 123)')
     parser.add_argument('--checkpoint-path', type=str, default=None,
                        help='Path to load checkpoint (default: None)')
-    parser.add_argument('--method', type=str, default='cp',
+    parser.add_argument('--factorization', type=str, default='cp',
                        help='Method of tensor factorization (default: cp)')
     parser.add_argument('--rank', type=str, default=8,
                        help='rank param for tensor factorization (default: 8)')
