@@ -34,7 +34,7 @@ def parse_args():
                        help='Path to load checkpoint (default: None)')
     parser.add_argument('--factorization', type=str, default='cp',
                        help='Method of tensor factorization (default: cp)')
-    parser.add_argument('--rank', type=str, default=8,
+    parser.add_argument('--rank', type=int, default=8,
                        help='rank param for tensor factorization (default: 8)')
     parser.add_argument('--compile-model', action='store_true',
                         help='Enable model compilation (default: False)')
