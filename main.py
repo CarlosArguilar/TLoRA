@@ -32,6 +32,12 @@ def parse_args():
                        help='Random seed (default: 123)')
     parser.add_argument('--checkpoint-path', type=str, default=None,
                        help='Path to load checkpoint (default: None)')
+    parser.add_argument('--method', type=str, default='cp',
+                       help='Method of tensor factorization (default: cp)')
+    parser.add_argument('--rank', type=str, default=8,
+                       help='rank param for tensor factorization (default: 8)')
+    parser.add_argument('--compile-model', action='store_true',
+                        help='Enable model compilation (default: False)')
     
     return parser.parse_args()
 
@@ -71,7 +77,7 @@ def create_model(device: torch.device, args) -> ViTForImageClassification:
     model = ViTForImageClassification.from_pretrained("google/vit-base-patch16-224")
     
     # Replace attention layers
-    model = replace_attention_layers(model, ModifiedViTSdpaSelfAttention)
+    model = replace_attention_layers(model, ModifiedViTSdpaSelfAttention, args.factorization, args.rank)
     
     # Replace final classifier
     model.classifier = nn.Linear(768, 10)
@@ -97,7 +103,13 @@ def create_model(device: torch.device, args) -> ViTForImageClassification:
 
     model.classifier.requires_grad_(True)
 
-    return model.to(device)
+    model.to(device)
+
+    if args.compile_model:
+        print('Compiling model')
+        model = torch.compile(model)
+
+    return model
 
 def print_trainable_params(model: nn.Module):
     """Print ratio of trainable parameters"""
