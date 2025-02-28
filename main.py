@@ -76,7 +76,8 @@ def train_epoch(model: nn.Module, loader: DataLoader,
         optimizer.zero_grad()
         
         total_loss += loss.item() * inputs.size(0)
-    
+
+    print(f'Last LR: {scheduler.get_last_lr()}')
     scheduler.step()
     return total_loss / len(loader.dataset)
 
@@ -123,7 +124,7 @@ def main():
         lr=args.learning_rate,
         weight_decay=args.weight_decay
     )
-    scheduler = CosineAnnealingLR(optimizer, T_max=args.num_epochs)
+    scheduler = CosineAnnealingLR(optimizer, T_max=args.num_epochs, eta_min=args.eta_min)
     criterion = nn.CrossEntropyLoss()
     scaler = GradScaler()
     

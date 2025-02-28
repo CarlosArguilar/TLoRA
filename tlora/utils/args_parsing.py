@@ -29,6 +29,8 @@ def parse_args():
                        help='Number of epochs to train (default: 20)')
     parser.add_argument('--learning-rate', type=float, default=1e-4,
                        help='Learning rate (default: 1e-4)')
+    parser.add_argument('--eta-min', type=float, default=1e-6,
+                       help='Learning rate (default: 1e-4)')
     parser.add_argument('--weight-decay', type=float, default=1e-2,
                        help='Weight decay (default: 1e-2)')
     parser.add_argument('--num-workers', type=int, default=4,
