@@ -117,7 +117,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Data loading
-    train_set, test_set = DatasetFactory.create(args.dataset, root="./custom_data")
+    train_set, test_set = DatasetFactory.create(args.dataset)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
                              num_workers=args.num_workers, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=args.batch_size*2,
