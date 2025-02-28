@@ -11,6 +11,7 @@ from torchvision import datasets, transforms
 from tlora.utils import replace_attention_layers, parse_args
 from tlora.modified_layers import ModifiedViTSdpaSelfAttention
 from tlora.datasets import create_dataset
+from tlora.utils.checkpoint import save_checkpoint, load_checkpoint
 
 torch.backends.cudnn.benchmark = True
 
@@ -19,10 +20,6 @@ def set_seed(seed: int):
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
-
-def get_device() -> torch.device:
-    """Get available compute device"""
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def create_model(device: torch.device, args) -> ViTForImageClassification:
     """Create and configure ViT model with LoRA modifications"""
@@ -116,10 +113,8 @@ def evaluate(model: nn.Module, loader: DataLoader,
 
 def main():
     args = parse_args()
-
-    # Initialization
     set_seed(args.seed)
-    device = get_device()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Data loading
     train_set, test_set = create_dataset(args.dataset)
@@ -142,26 +137,41 @@ def main():
     criterion = nn.CrossEntropyLoss()
     scaler = GradScaler()
     
+    # Training state initialization
+    start_epoch = 1
     best_acc = 0.0
     
+    # Checkpoint loading
+    if args.checkpoint_path:
+        start_epoch, best_acc = load_checkpoint(
+            model, optimizer, scheduler, scaler, device, args.checkpoint_path
+        )
+        print(f"Resuming training from epoch {start_epoch} with best acc {best_acc*100:.2f}%")
+
     # Training loop
-    for epoch in range(1, args.num_epochs+1):
+    for epoch in range(start_epoch, args.num_epochs+1):
         print(f"\nEpoch {epoch}/{args.num_epochs}")
         
-        # Training
         train_loss = train_epoch(model, train_loader, optimizer, scheduler, 
                                 criterion, scaler, device)
-        
-        # Evaluation
         val_loss, val_acc = evaluate(model, test_loader, criterion, device)
         
-        # Save best model
+        # Update and save best checkpoint
         if val_acc > best_acc:
             best_acc = val_acc
-            torch.save(model.state_dict(), "best_model.pth")
-        
+            save_checkpoint(
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                scaler=scaler,
+                epoch=epoch,
+                best_acc=best_acc,
+                args=args,
+            )
+
         print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
         print(f"Val Accuracy: {val_acc*100:.2f}% (Best: {best_acc*100:.2f}%)")
+
 
 if __name__ == "__main__":
     main()

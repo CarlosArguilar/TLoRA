@@ -11,6 +11,12 @@ def parse_rank(s):
             return int(s)
     except Exception as e:
         raise argparse.ArgumentTypeError("Rank must be an integer or a comma-separated tuple of 3 integers")
+    
+def print_args(args):
+    """Prints the parsed command-line arguments in a formatted way."""
+    print("\nCurrent Parameters:")
+    for arg, value in vars(args).items():
+        print(f"{arg}: {value}")
 
 
 def parse_args():
@@ -40,4 +46,9 @@ def parse_args():
                         help='Enable model compilation (default: False)')
     parser.add_argument('--dataset', type=str, default='cifar10',
                        help='Dataset to be used.')
-    return parser.parse_args()
+    
+    args = parser.parse_args()
+    
+    print_args(args)
+    
+    return args
