@@ -37,20 +37,33 @@ def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, scheduler: opt
     torch.save(checkpoint, filename)
     print(f"Saved checkpoint to {filename}")
 
-def load_checkpoint(model: nn.Module, optimizer: optim.Optimizer, scheduler: optim.lr_scheduler._LRScheduler,
-                    scaler: GradScaler, device: torch.device, filename: str) -> Tuple[int, float]:
+def load_checkpoint(model: nn.Module, 
+                    optimizer: optim.Optimizer, 
+                    scheduler: optim.lr_scheduler._LRScheduler,
+                    scaler: GradScaler, 
+                    device: torch.device, 
+                    filename: str) -> Tuple[int, float]:
     """Load training checkpoint and return updated training state"""
     print(f"Loading checkpoint from {filename}")
     checkpoint = torch.load(filename, map_location=device)
+
+    # Identify trainable parameters in the *current* model
+    trainable_params = {name for name, param in model.named_parameters() if param.requires_grad}
     
-    # Load trainable parameters
+    # Get full current state_dict of the model
     model_state_dict = model.state_dict()
-    model_state_dict.update(checkpoint['trainable_model_state_dict'])
+
+    # Update only the trainable parameters from the checkpoint
+    for name, param in checkpoint['trainable_model_state_dict'].items():
+        if name in trainable_params:
+            model_state_dict[name] = param
+
+    # Load updated state_dict back into the model
     model.load_state_dict(model_state_dict)
-    
-    # Load training state
+
+    # Load optimizer, scheduler, scaler states
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
     scaler.load_state_dict(checkpoint['scaler_state_dict'])
-    
+
     return checkpoint['epoch'], checkpoint['best_acc']
