@@ -1,2 +1,2 @@
-from .datasets import create_dataset
+from .datasets import DatasetFactory
 from .cifar import CIFAR10Dataset, CIFAR100Dataset
