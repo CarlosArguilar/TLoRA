@@ -21,7 +21,7 @@ def set_seed(seed: int):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-def create_model(device: torch.device, args) -> ViTForImageClassification:
+def create_model(device: torch.device, args, num_classes: int) -> ViTForImageClassification:
     """Create and configure ViT model with LoRA modifications"""
     model = ViTForImageClassification.from_pretrained("google/vit-base-patch16-224")
     
@@ -29,7 +29,7 @@ def create_model(device: torch.device, args) -> ViTForImageClassification:
     model = replace_attention_layers(model, ModifiedViTSdpaSelfAttention, args.factorization, args.rank)
     
     # Replace final classifier
-    model.classifier = nn.Linear(768, 10)
+    model.classifier = nn.Linear(768, num_classes)
     
     # Freeze all parameters except factorization and classifier
     for param in model.parameters():
@@ -107,14 +107,14 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Data loading
-    train_set, test_set = DatasetFactory.create(args.dataset)
+    num_classes, train_set, test_set = DatasetFactory.create(args.dataset)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
                              num_workers=args.num_workers, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=args.batch_size*2,
                             num_workers=args.num_workers, pin_memory=True)
     
     # Model setup
-    model = create_model(device, args)
+    model = create_model(device, args, num_classes)
     print_trainable_params(model)
     
     # Optimization setup
