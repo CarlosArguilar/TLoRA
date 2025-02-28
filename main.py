@@ -30,16 +30,6 @@ def create_model(device: torch.device, args) -> ViTForImageClassification:
     
     # Replace final classifier
     model.classifier = nn.Linear(768, 10)
-
-    if args.checkpoint_path:
-        print(f"Loading model from checkpoint: {args.checkpoint_path}")
-
-        # Load the checkpoint
-        checkpoint = torch.load(args.checkpoint_path, map_location=device)
-        
-        # Load the state dict into the model
-        model.load_state_dict(checkpoint)
-
     
     # Freeze all parameters except factorization and classifier
     for param in model.parameters():

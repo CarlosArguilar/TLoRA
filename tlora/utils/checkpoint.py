@@ -46,7 +46,7 @@ def load_checkpoint(model: nn.Module, optimizer: optim.Optimizer, scheduler: opt
     # Load trainable parameters
     model_state_dict = model.state_dict()
     model_state_dict.update(checkpoint['trainable_model_state_dict'])
-    model.load_state_dict(model_state_dict, strict=False)
+    model.load_state_dict(model_state_dict)
     
     # Load training state
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
