@@ -61,7 +61,7 @@ class Tucker3FactorizedTensor(FactorizedTensor, factorization_type="tucker3"):
     def forward(self):
         """Reconstruction: core[m,r,c] x mode[m] x row[r] x col[c]"""
         deltas = torch.einsum(
-            "mrc,qm,hr,hc->qhr",  # q=Q/K/V, h=hidden_size
+            "mrc, qm, hr, kc -> qhk",
             self.core,
             self.mode_factors,
             self.row_factors,
