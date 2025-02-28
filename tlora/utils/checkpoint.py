@@ -59,7 +59,7 @@ def load_checkpoint(model: nn.Module,
             model_state_dict[name] = param
 
     # Load updated state_dict back into the model
-    model.load_state_dict(model_state_dict)
+    model.load_state_dict(model_state_dict, strict=False)
 
     # Load optimizer, scheduler, scaler states
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
