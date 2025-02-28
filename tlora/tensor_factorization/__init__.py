@@ -1,4 +1,4 @@
 from .base import FactorizedTensor
 from .canonical_decomposition import CPFactorizedTensor
-from .tucker_decomposition import TuckerFactorizedTensor
+from .tucker_decomposition import Tucker2FactorizedTensor, Tucker3FactorizedTensor
 from .lora import LoRAFactorizedTensor

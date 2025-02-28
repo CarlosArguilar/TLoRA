@@ -22,3 +22,4 @@ def replace_attention_layers(model, modified_layer, factorization, rank):
 
         model.vit.encoder.layer[i] = new_layer
     return model
+

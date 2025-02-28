@@ -1,6 +1,5 @@
 from typing import Tuple
 import torch
-import argparse
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torch.amp import autocast, GradScaler
@@ -9,38 +8,11 @@ from tqdm import tqdm
 from transformers import ViTForImageClassification
 from torchvision import datasets, transforms
 
-from tlora.utils import replace_attention_layers
+from tlora.utils import replace_attention_layers, parse_args
 from tlora.modified_layers import ModifiedViTSdpaSelfAttention
+from tlora.datasets import create_dataset
 
 torch.backends.cudnn.benchmark = True
-
-def parse_args():
-    """Parse command-line arguments with default values"""
-    parser = argparse.ArgumentParser(description='Train ViT with TLoRA')
-    
-    parser.add_argument('--batch-size', type=int, default=128,
-                       help='Input batch size for training (default: 128)')
-    parser.add_argument('--num-epochs', type=int, default=20,
-                       help='Number of epochs to train (default: 20)')
-    parser.add_argument('--learning-rate', type=float, default=1e-4,
-                       help='Learning rate (default: 1e-4)')
-    parser.add_argument('--weight-decay', type=float, default=1e-2,
-                       help='Weight decay (default: 1e-2)')
-    parser.add_argument('--num-workers', type=int, default=4,
-                       help='Number of workers for data loading (default: 4)')
-    parser.add_argument('--seed', type=int, default=123,
-                       help='Random seed (default: 123)')
-    parser.add_argument('--checkpoint-path', type=str, default=None,
-                       help='Path to load checkpoint (default: None)')
-    parser.add_argument('--factorization', type=str, default='cp',
-                       help='Method of tensor factorization (default: cp)')
-    parser.add_argument('--rank', type=int, default=8,
-                       help='rank param for tensor factorization (default: 8)')
-    parser.add_argument('--compile-model', action='store_true',
-                        help='Enable model compilation (default: False)')
-    
-    return parser.parse_args()
-
 
 def set_seed(seed: int):
     """Set random seed for reproducibility"""
@@ -51,26 +23,6 @@ def set_seed(seed: int):
 def get_device() -> torch.device:
     """Get available compute device"""
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-def create_datasets() -> Tuple[datasets.CIFAR10, datasets.CIFAR10]:
-    """Create CIFAR-10 datasets with appropriate transforms"""
-    train_transform = transforms.Compose([
-        transforms.Resize(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-
-    test_transform = transforms.Compose([
-        transforms.Resize(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-
-    return (
-        datasets.CIFAR10(root='./data', train=True, download=True, transform=train_transform),
-        datasets.CIFAR10(root='./data', train=False, download=True, transform=test_transform)
-    )
 
 def create_model(device: torch.device, args) -> ViTForImageClassification:
     """Create and configure ViT model with LoRA modifications"""
@@ -170,7 +122,7 @@ def main():
     device = get_device()
     
     # Data loading
-    train_set, test_set = create_datasets()
+    train_set, test_set = create_dataset(args.dataset)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
                              num_workers=args.num_workers, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=args.batch_size*2,
