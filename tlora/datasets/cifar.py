@@ -1,42 +1,59 @@
-from tlora.datasets.datasets import register_dataset, processor
+from tlora.datasets.datasets import processor, DatasetFactory
+from tlora.datasets.registry import register_dataset
 from typing import Tuple, Optional
 from torchvision import datasets
 import torch
 
-@register_dataset
-def cifar10(
-    root: str = "./data",
-    download: bool = True,
-    validation_split: Optional[float] = None
-) -> Tuple[torch.utils.data.Dataset, ...]:
-    """
-    Returns: (train, test) or (train, val, test) if validation_split is specified
-    """
-    transform = lambda img: processor(img, return_tensors="pt")["pixel_values"].squeeze(0)
+class CIFAR10Dataset(DatasetFactory, dataset_name="cifar10"):
+    """CIFAR-10 implementation following factory pattern"""
     
-    train = datasets.CIFAR10(root=root, train=True, download=download, transform=transform)
-    test = datasets.CIFAR10(root=root, train=False, download=download, transform=transform)
-    
-    if validation_split:
-        train, val = torch.utils.data.random_split(train, [1 - validation_split, validation_split])
-        return train, val, test
+    def get_splits(self) -> Tuple[torch.utils.data.Dataset, ...]:
+        transform = lambda img: processor(img, return_tensors="pt")["pixel_values"].squeeze(0)
         
-    return train, test
+        train = datasets.CIFAR10(
+            root=self.root,
+            train=True,
+            download=self.download,
+            transform=transform
+        )
+        
+        test = datasets.CIFAR10(
+            root=self.root,
+            train=False,
+            download=self.download,
+            transform=transform
+        )
+        
+        if self.validation_split:
+            val_size = int(len(train) * self.validation_split)
+            train, val = torch.utils.data.random_split(train, [len(train)-val_size, val_size])
+            return train, val, test
+            
+        return train, test
 
-@register_dataset
-def cifar100(
-    root: str = "./data",
-    download: bool = True,
-    validation_split: Optional[float] = None
-) -> Tuple[torch.utils.data.Dataset, ...]:
-    """Same interface as cifar10 but for CIFAR-100"""
-    transform = lambda img: processor(img, return_tensors="pt")["pixel_values"].squeeze(0)
+class CIFAR100Dataset(DatasetFactory, dataset_name="cifar100"):
+    """CIFAR-100 implementation following factory pattern"""
     
-    train = datasets.CIFAR100(root=root, train=True, download=download, transform=transform)
-    test = datasets.CIFAR100(root=root, train=False, download=download, transform=transform)
-    
-    if validation_split:
-        train, val = torch.utils.data.random_split(train, [1 - validation_split, validation_split])
-        return train, val, test
+    def get_splits(self) -> Tuple[torch.utils.data.Dataset, ...]:
+        transform = lambda img: processor(img, return_tensors="pt")["pixel_values"].squeeze(0)
         
-    return train, test
+        train = datasets.CIFAR100(
+            root=self.root,
+            train=True,
+            download=self.download,
+            transform=transform
+        )
+        
+        test = datasets.CIFAR100(
+            root=self.root,
+            train=False,
+            download=self.download,
+            transform=transform
+        )
+        
+        if self.validation_split:
+            val_size = int(len(train) * self.validation_split)
+            train, val = torch.utils.data.random_split(train, [len(train)-val_size, val_size])
+            return train, val, test
+            
+        return train, test

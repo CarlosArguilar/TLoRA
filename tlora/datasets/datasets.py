@@ -1,52 +1,54 @@
 import torch
+from torchvision import datasets
 from transformers import ViTImageProcessorFast
-from typing import Tuple, Dict, Callable
-from functools import wraps
+from abc import ABC, abstractmethod
+from typing import Tuple, Dict, Type, Optional
 
-# Global processor for image transformations
 processor = ViTImageProcessorFast.from_pretrained("google/vit-base-patch16-224")
 
-# Dataset registry dictionary
-_dataset_registry: Dict[str, Callable] = {}
-
-def register_dataset(func: Callable) -> Callable:
-    """Decorator to automatically register dataset creation functions"""
-    _dataset_registry[func.__name__] = func
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return wrapper
-
-def create_dataset(
-    name: str,
-    root: str = "./data",
-    **kwargs
-) -> Tuple[torch.utils.data.Dataset, ...]:
-    """
-    Main factory function to create datasets
+class DatasetFactory(ABC):
+    """Base class for dataset factories with automatic registration"""
+    _registry: Dict[str, Type['DatasetFactory']] = {}
     
-    Args:
-        name: Name of registered dataset (e.g., 'cifar10')
-        root: Root directory for data storage
-        **kwargs: Dataset-specific parameters (e.g., validation_split)
+    def __init_subclass__(cls, dataset_name: str = None, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if dataset_name is not None:
+            cls._registry[dataset_name.lower()] = cls
+            
+    def __init__(self, 
+                 root: str = "./data",
+                 download: bool = True,
+                 validation_split: Optional[float] = None):
+        self.root = root
+        self.download = download
+        self.validation_split = validation_split
         
-    Returns:
-        Tuple of datasets (train, test) or (train, val, test)
-    """
-    name = name.lower()
-    if name not in _dataset_registry:
-        available = list(_dataset_registry.keys())
-        raise ValueError(f"Dataset '{name}' not found. Available: {available}")
+    @classmethod
+    def create(cls, 
+               name: str,
+               **kwargs) -> Tuple[torch.utils.data.Dataset, ...]:
+        """Factory method to create dataset splits"""
+        name = name.lower()
+        if name not in cls._registry:
+            raise ValueError(f"Unknown dataset: {name}. Available: {list(cls._registry.keys())}")
+            
+        instance = cls._registry[name](**kwargs)
+        return instance.get_splits()
     
-    return _dataset_registry[name](root=root, **kwargs)
+    @abstractmethod
+    def get_splits(self) -> Tuple[torch.utils.data.Dataset, ...]:
+        """Return dataset splits (train, test) or (train, val, test)"""
+        pass
 
-# Example usage
+
+
+# Usage example
 if __name__ == "__main__":
-    # Basic usage
-    train, test = create_dataset("cifar10", root="./custom_data")
+    # Get basic splits
+    train, test = DatasetFactory.create("cifar10", root="./custom_data")
     
-    # With validation split
-    train, val, test = create_dataset("cifar100", validation_split=0.2)
+    # Get splits with validation
+    train, val, test = DatasetFactory.create("cifar100", validation_split=0.2)
     
     print(f"CIFAR-10: {len(train)} train, {len(test)} test")
     print(f"CIFAR-100: {len(train)} train, {len(val)} val, {len(test)} test")

@@ -10,7 +10,7 @@ from torchvision import datasets, transforms
 
 from tlora.utils import replace_attention_layers, parse_args
 from tlora.modified_layers import ModifiedViTSdpaSelfAttention
-from tlora.datasets import create_dataset
+from tlora.datasets import DatasetFactory
 from tlora.utils.checkpoint import save_checkpoint, load_checkpoint
 
 torch.backends.cudnn.benchmark = True
@@ -117,7 +117,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Data loading
-    train_set, test_set = create_dataset(args.dataset)
+    train_set, test_set = DatasetFactory.create(args.dataset, root="./custom_data")
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
                              num_workers=args.num_workers, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=args.batch_size*2,
