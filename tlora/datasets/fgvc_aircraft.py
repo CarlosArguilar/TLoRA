@@ -7,7 +7,7 @@ import torch
 class FGVCAircraftDataset(DatasetFactory, dataset_name="fgvc_aircraft"):
     """FGVC-Aircraft implementation following factory pattern"""
     
-    def get_splits(self) -> Tuple[int, torch.utils.data.Dataset, ...]:
+    def get_splits(self) -> Tuple[int, torch.utils.data.Dataset, torch.utils.data.Dataset]:
         transform = lambda img: processor(img, return_tensors="pt")["pixel_values"].squeeze(0)
         
         train = datasets.FGVCAircraft(

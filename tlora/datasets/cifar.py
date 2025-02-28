@@ -6,7 +6,7 @@ import torch
 class CIFAR10Dataset(DatasetFactory, dataset_name="cifar10"):
     """CIFAR-10 implementation following factory pattern"""
     
-    def get_splits(self) -> Tuple[int, torch.utils.data.Dataset, ...]:
+    def get_splits(self) -> Tuple[int, torch.utils.data.Dataset, torch.utils.data.Dataset]:
         transform = lambda img: processor(img, return_tensors="pt")["pixel_values"].squeeze(0)
         
         train = datasets.CIFAR10(
@@ -35,7 +35,7 @@ class CIFAR10Dataset(DatasetFactory, dataset_name="cifar10"):
 class CIFAR100Dataset(DatasetFactory, dataset_name="cifar100"):
     """CIFAR-100 implementation following factory pattern"""
     
-    def get_splits(self) -> Tuple[int, torch.utils.data.Dataset, ...]:
+    def get_splits(self) -> Tuple[int, torch.utils.data.Dataset, torch.utils.data.Dataset]:
         transform = lambda img: processor(img, return_tensors="pt")["pixel_values"].squeeze(0)
         
         train = datasets.CIFAR100(
