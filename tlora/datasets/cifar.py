@@ -1,5 +1,4 @@
 from tlora.datasets.datasets import processor, DatasetFactory
-from tlora.datasets.registry import register_dataset
 from typing import Tuple, Optional
 from torchvision import datasets
 import torch
