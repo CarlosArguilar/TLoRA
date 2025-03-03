@@ -77,7 +77,7 @@ def train_epoch(model: nn.Module, loader: DataLoader,
         
         total_loss += loss.item() * inputs.size(0)
 
-    print(f'Last LR: {scheduler.get_last_lr()}')
+    print(f'Last LR: {scheduler.get_last_lr()[0]: .2e}')
     scheduler.step()
     return total_loss / len(loader.dataset)
 
@@ -102,29 +102,28 @@ def evaluate(model: nn.Module, loader: DataLoader,
     
     return total_loss / len(loader.dataset), correct / len(loader.dataset)
 
-def main():
-    args = parse_args()
-    set_seed(args.seed)
+def main(**kwargs):
+    set_seed(kwargs.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Data loading
-    num_classes, train_set, test_set = DatasetFactory.create(args.dataset)
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
-                             num_workers=args.num_workers, pin_memory=True)
-    test_loader = DataLoader(test_set, batch_size=args.batch_size*2,
-                            num_workers=args.num_workers, pin_memory=True)
+    num_classes, train_set, test_set = DatasetFactory.create(kwargs.dataset)
+    train_loader = DataLoader(train_set, batch_size=kwargs.batch_size, shuffle=True,
+                             num_workers=kwargs.num_workers, pin_memory=True)
+    test_loader = DataLoader(test_set, batch_size=kwargs.batch_size*2,
+                            num_workers=kwargs.num_workers, pin_memory=True)
     
     # Model setup
-    model = create_model(device, args, num_classes)
+    model = create_model(device, kwargs, num_classes)
     print_trainable_params(model)
     
     # Optimization setup
     optimizer = optim.AdamW(
         filter(lambda p: p.requires_grad, model.parameters()),
-        lr=args.learning_rate,
-        weight_decay=args.weight_decay
+        lr=kwargs.learning_rate,
+        weight_decay=kwargs.weight_decay
     )
-    scheduler = CosineAnnealingLR(optimizer, T_max=args.num_epochs, eta_min=args.eta_min)
+    scheduler = CosineAnnealingLR(optimizer, T_max=kwargs.num_epochs, eta_min=kwargs.eta_min)
     criterion = nn.CrossEntropyLoss()
     scaler = GradScaler()
     
@@ -133,15 +132,15 @@ def main():
     best_acc = 0.0
     
     # Checkpoint loading
-    if args.checkpoint_path:
+    if kwargs.checkpoint_path:
         start_epoch, best_acc = load_checkpoint(
-            model, optimizer, scheduler, scaler, device, args.checkpoint_path
+            model, optimizer, scheduler, scaler, device, kwargs.checkpoint_path
         )
         print(f"Resuming training from epoch {start_epoch} with best acc {best_acc*100:.2f}%")
 
     # Training loop
-    for epoch in range(start_epoch, args.num_epochs+1):
-        print(f"\nEpoch {epoch}/{args.num_epochs}")
+    for epoch in range(start_epoch, kwargs.num_epochs+1):
+        print(f"\nEpoch {epoch}/{kwargs.num_epochs}")
         
         train_loss = train_epoch(model, train_loader, optimizer, scheduler, 
                                 criterion, scaler, device)
@@ -157,12 +156,14 @@ def main():
                 scaler=scaler,
                 epoch=epoch,
                 best_acc=best_acc,
-                args=args,
+                args=kwargs,
             )
 
         print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
         print(f"Val Accuracy: {val_acc*100:.2f}% (Best: {best_acc*100:.2f}%)")
 
+    return best_acc
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(**args)
