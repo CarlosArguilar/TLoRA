@@ -106,16 +106,21 @@ def evaluate(model: nn.Module, loader: DataLoader,
 def main(**kwargs):
     if isinstance(kwargs, dict):
         kwargs = SimpleNamespace(**kwargs)
-        
+
     set_seed(kwargs.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Data loading
-    num_classes, train_set, test_set = DatasetFactory.create(kwargs.dataset)
+    num_classes, train_set, val_set, test_set = DatasetFactory.create(kwargs.dataset)
     train_loader = DataLoader(train_set, batch_size=kwargs.batch_size, shuffle=True,
                              num_workers=kwargs.num_workers, pin_memory=True)
-    test_loader = DataLoader(test_set, batch_size=kwargs.batch_size*2,
-                            num_workers=kwargs.num_workers, pin_memory=True)
+    
+    if val_set:
+        val_loader = DataLoader(val_set, batch_size=kwargs.batch_size*2,
+                               num_workers=kwargs.num_workers, pin_memory=True)
+    else:
+        val_loader = DataLoader(test_set, batch_size=kwargs.batch_size*2,
+                                num_workers=kwargs.num_workers, pin_memory=True)
     
     # Model setup
     model = create_model(device, kwargs, num_classes)
@@ -148,7 +153,7 @@ def main(**kwargs):
         
         train_loss = train_epoch(model, train_loader, optimizer, scheduler, 
                                 criterion, scaler, device)
-        val_loss, val_acc = evaluate(model, test_loader, criterion, device)
+        val_loss, val_acc = evaluate(model, val_loader, criterion, device)
         
         # Update and save best checkpoint
         if val_acc > best_acc:

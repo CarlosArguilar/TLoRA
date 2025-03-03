@@ -23,11 +23,13 @@ class FGVCAircraftDataset(DatasetFactory, dataset_name="fgvc_aircraft"):
             download=self.download,
             transform=transform
         )
-        
-        if self.validation_split:
-            val_size = int(len(train) * self.validation_split)
-            train, val = torch.utils.data.random_split(train, [len(train) - val_size, val_size])
-            return train, val, test
+
+        val = datasets.FGVCAircraft(
+            root=self.root,
+            split="val",
+            download=self.download,
+            transform=transform
+        )
         
         num_classes = len(train.classes)
-        return num_classes, train, test
+        return num_classes, train, val, test

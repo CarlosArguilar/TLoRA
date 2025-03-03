@@ -26,11 +26,12 @@ class CIFAR10Dataset(DatasetFactory, dataset_name="cifar10"):
         if self.validation_split:
             val_size = int(len(train) * self.validation_split)
             train, val = torch.utils.data.random_split(train, [len(train)-val_size, val_size])
-            return train, val, test
-        
+        else:
+            val = None
+
         num_classes = len(train.classes)
             
-        return num_classes, train, test
+        return num_classes, train, val, test
 
 class CIFAR100Dataset(DatasetFactory, dataset_name="cifar100"):
     """CIFAR-100 implementation following factory pattern"""
@@ -55,8 +56,9 @@ class CIFAR100Dataset(DatasetFactory, dataset_name="cifar100"):
         if self.validation_split:
             val_size = int(len(train) * self.validation_split)
             train, val = torch.utils.data.random_split(train, [len(train)-val_size, val_size])
-            return train, val, test
+        else:
+            val = None
         
         num_classes = len(train.classes)
             
-        return num_classes, train, test
+        return num_classes, train, val, test
