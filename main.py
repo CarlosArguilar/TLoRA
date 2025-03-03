@@ -105,7 +105,9 @@ def evaluate(model: nn.Module, loader: DataLoader,
 
 def main(**kwargs):
     if isinstance(kwargs, dict):
+        print(kwargs)
         kwargs = SimpleNamespace(**kwargs)
+        
 
     set_seed(kwargs.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
