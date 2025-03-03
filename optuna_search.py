@@ -1,5 +1,5 @@
 import optuna
-from main import main  # <-- Import the main function from your training file
+from main import main
 
 def objective(trial):
     """
@@ -21,9 +21,9 @@ def objective(trial):
         "seed": 123,
         "batch_size": 128,
         "num_epochs": 6,       # Or fewer if you want faster trials
-        "num_workers": 4,
-        "dataset": "cifar10",
-        "factorization": "cp",
+        "num_workers": 2,
+        "dataset": "fgvc_aircraft",
+        "factorization": "tucker3",
         "compile_model": False,
         "checkpoint_path": None,
         
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     study = optuna.create_study(direction="maximize")
     
     # Number of trials to run - adjust based on your compute budget
-    study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=50)
     
     print("Best trial:")
     print("  Value (accuracy):", study.best_trial.value)
