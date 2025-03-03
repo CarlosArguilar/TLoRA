@@ -49,7 +49,12 @@ if __name__ == "__main__":
     # study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler(seed=123))
     
     # Or you can skip the seed in the sampler for more variability:
-    study = optuna.create_study(direction="maximize")
+    study = optuna.create_study(
+        direction="maximize", 
+        storage="sqlite:///study_params.db", 
+        study_name="study_params", 
+        load_if_exists=True
+    )
     
     # Number of trials to run - adjust based on your compute budget
     study.optimize(objective, n_trials=50)
