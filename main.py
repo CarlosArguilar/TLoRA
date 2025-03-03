@@ -7,6 +7,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
 from transformers import ViTForImageClassification
 from torchvision import datasets, transforms
+from types import SimpleNamespace
 
 from tlora.utils import replace_attention_layers, parse_args
 from tlora.modified_layers import ModifiedViTSdpaSelfAttention
@@ -103,6 +104,9 @@ def evaluate(model: nn.Module, loader: DataLoader,
     return total_loss / len(loader.dataset), correct / len(loader.dataset)
 
 def main(**kwargs):
+    if isinstance(kwargs, dict):
+        kwargs = SimpleNamespace(**kwargs)
+        
     set_seed(kwargs.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
