@@ -177,4 +177,5 @@ def main(**kwargs):
 
 if __name__ == "__main__":
     args = parse_args()
+    args = vars(args)
     main(**args)
