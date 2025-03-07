@@ -58,76 +58,40 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
         
         # Call parent constructor with the processed rank tuple
         super().__init__(hidden_size, rank)
-        r_mode, r_row, r_col = rank
         self.hidden_size = hidden_size
         
-        # Core tensor (compressed representation)
-        self.qcore = nn.Parameter(torch.zeros(r_mode, r_row, r_col))
+        r_mode, r_row, r_col = rank
         
-        # Factor matrices
-        self.qmode_factors = nn.Parameter(torch.zeros(num_heads, r_mode))  # Q/K/V mode
+        # Define groups to avoid code duplication
+        self.groups = ['q', 'k', 'v']
+        for group in self.groups:
+            # Create and register the core tensor for each group
+            setattr(self, f"{group}core", nn.Parameter(torch.zeros(r_mode, r_row, r_col)))
+            
+            # Create and register the factor matrices for each group
+            setattr(self, f"{group}mode_factors", nn.Parameter(torch.zeros(num_heads, r_mode)))
+            setattr(self, f"{group}row_factors", nn.Parameter(torch.zeros(self.hidden_size, r_row)))
+            setattr(self, f"{group}col_factors", nn.Parameter(torch.zeros(self.hidden_size // num_heads, r_col)))
+            
+            # Orthogonal initialization for the factor matrices (but not the core tensor)
+            nn.init.orthogonal_(getattr(self, f"{group}mode_factors"))
+            nn.init.orthogonal_(getattr(self, f"{group}row_factors"))
+            nn.init.orthogonal_(getattr(self, f"{group}col_factors"))
+    
+    def _reconstruct(self, group: str):
+        """Helper method to compute reconstruction for a given group (q, k, or v)."""
+        core = getattr(self, f"{group}core")
+        mode_factors = getattr(self, f"{group}mode_factors")
+        row_factors = getattr(self, f"{group}row_factors")
+        col_factors = getattr(self, f"{group}col_factors")
         
-        self.qrow_factors = nn.Parameter(torch.zeros(self.hidden_size, r_row))  # Matrix rows
-        
-        self.qcol_factors = nn.Parameter(torch.zeros(self.hidden_size//num_heads, r_col))  # Matrix columns
-
-        # Core tensor (compressed representation)
-        self.kcore = nn.Parameter(torch.zeros(r_mode, r_row, r_col))
-        
-        # Factor matrices
-        self.kmode_factors = nn.Parameter(torch.zeros(num_heads, r_mode))  # Q/K/V mode
-        self.krow_factors = nn.Parameter(torch.zeros(self.hidden_size, r_row))  # Matrix rows
-        self.kcol_factors = nn.Parameter(torch.zeros(self.hidden_size//num_heads, r_col))  # Matrix columns
-
-        # Core tensor (compressed representation)
-        self.vcore = nn.Parameter(torch.zeros(r_mode, r_row, r_col))
-        
-        # Factor matrices
-        self.vmode_factors = nn.Parameter(torch.zeros(num_heads, r_mode))  # Q/K/V mode
-        self.vrow_factors = nn.Parameter(torch.zeros(self.hidden_size, r_row))  # Matrix rows
-        self.vcol_factors = nn.Parameter(torch.zeros(self.hidden_size//num_heads, r_col))  # Matrix columns
-
-
-        # Orthogonal initialization for the factor matrices
-        nn.init.orthogonal_(self.qmode_factors)
-        nn.init.orthogonal_(self.qrow_factors)
-        nn.init.orthogonal_(self.qcol_factors)
-
-        # Orthogonal initialization for the factor matrices
-        nn.init.orthogonal_(self.kmode_factors)
-        nn.init.orthogonal_(self.krow_factors)
-        nn.init.orthogonal_(self.kcol_factors)
-
-        # Orthogonal initialization for the factor matrices
-        nn.init.orthogonal_(self.vmode_factors)
-        nn.init.orthogonal_(self.vrow_factors)
-        nn.init.orthogonal_(self.vcol_factors)
-
+        # Perform tensor contraction using Einstein summation
+        result = torch.einsum("mrc, qm, hr, kc -> hkq", 
+                                core, mode_factors, row_factors, col_factors)
+        # Reshape to combine the output dimensions
+        return result.reshape(self.hidden_size, self.hidden_size)
+    
     def forward(self):
-        """Reconstruction: core[m,r,c] x mode[m] x row[r] x col[c]"""
-        deltas_q = torch.einsum(
-            "mrc, qm, hr, kc -> qhk",
-            self.qcore,
-            self.qmode_factors,
-            self.qrow_factors,
-            self.qcol_factors
-        ).permute(1,0,2).reshape(self.hidden_size, self.hidden_size)
-        
-        deltas_k = torch.einsum(
-            "mrc, qm, hr, kc -> qhk",
-            self.kcore,
-            self.kmode_factors,
-            self.krow_factors,
-            self.kcol_factors
-        ).permute(1,0,2).reshape(self.hidden_size, self.hidden_size)
-
-        deltas_v = torch.einsum(
-            "mrc, qm, hr, kc -> qhk",
-            self.vcore,
-            self.vmode_factors,
-            self.vrow_factors,
-            self.vcol_factors
-        ).permute(1,0,2).reshape(self.hidden_size, self.hidden_size)
-
-
-        return deltas_q, deltas_k, deltas_v  # Return Q, K, V matrices
+        """Reconstruction: core[m,r,c] x mode[m] x row[r] x col[c] for Q, K, V"""
+        outputs = tuple(self._reconstruct(group) for group in self.groups)
+        return outputs  # Returns a tuple: (deltas_q, deltas_k, deltas_v)
