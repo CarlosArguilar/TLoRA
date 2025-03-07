@@ -106,28 +106,28 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
     def forward(self):
         """Reconstruction: core[m,r,c] x mode[m] x row[r] x col[c]"""
         deltas_q = torch.einsum(
-            "mrc, qm, hr, kc -> hkq",
+            "mrc, qm, hr, kc -> qhk",
             self.qcore,
             self.qmode_factors,
             self.qrow_factors,
             self.qcol_factors
-        ).reshape(self.hidden_size, self.hidden_size)
+        ).permute(1,0,2).reshape(self.hidden_size, self.hidden_size)
         
         deltas_k = torch.einsum(
-            "mrc, qm, hr, kc -> hkq",
+            "mrc, qm, hr, kc -> qhk",
             self.kcore,
             self.kmode_factors,
             self.krow_factors,
             self.kcol_factors
-        ).reshape(self.hidden_size, self.hidden_size)
+        ).permute(1,0,2).reshape(self.hidden_size, self.hidden_size)
 
         deltas_v = torch.einsum(
-            "mrc, qm, hr, kc -> hkq",
+            "mrc, qm, hr, kc -> qhk",
             self.vcore,
             self.vmode_factors,
             self.vrow_factors,
             self.vcol_factors
-        ).reshape(self.hidden_size, self.hidden_size)
+        ).permute(1,0,2).reshape(self.hidden_size, self.hidden_size)
 
 
         return deltas_q, deltas_k, deltas_v  # Return Q, K, V matrices
