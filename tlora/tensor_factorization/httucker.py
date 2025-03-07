@@ -72,7 +72,7 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
         self.qrow_factors = nn.Parameter(torch.zeros(self.hidden_size, r_row))  # Matrix rows
         print(f"qrow_factors size: {self.qrow_factors.size()}")
         
-        self.qcol_factors = nn.Parameter(torch.zeros(self.hidden_size/num_heads, r_col))  # Matrix columns
+        self.qcol_factors = nn.Parameter(torch.zeros(self.hidden_size//num_heads, r_col))  # Matrix columns
         print(f"qcol_factors size: {self.qcol_factors.size()}")
 
         # Core tensor (compressed representation)
@@ -81,7 +81,7 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
         # Factor matrices
         self.kmode_factors = nn.Parameter(torch.zeros(num_heads, r_mode))  # Q/K/V mode
         self.krow_factors = nn.Parameter(torch.zeros(self.hidden_size, r_row))  # Matrix rows
-        self.kcol_factors = nn.Parameter(torch.zeros(self.hidden_size/num_heads, r_col))  # Matrix columns
+        self.kcol_factors = nn.Parameter(torch.zeros(self.hidden_size//num_heads, r_col))  # Matrix columns
 
         # Core tensor (compressed representation)
         self.vcore = nn.Parameter(torch.zeros(r_mode, r_row, r_col))
@@ -89,7 +89,7 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
         # Factor matrices
         self.vmode_factors = nn.Parameter(torch.zeros(num_heads, r_mode))  # Q/K/V mode
         self.vrow_factors = nn.Parameter(torch.zeros(self.hidden_size, r_row))  # Matrix rows
-        self.vcol_factors = nn.Parameter(torch.zeros(self.hidden_size/num_heads, r_col))  # Matrix columns
+        self.vcol_factors = nn.Parameter(torch.zeros(self.hidden_size//num_heads, r_col))  # Matrix columns
 
 
         # Orthogonal initialization for the factor matrices
