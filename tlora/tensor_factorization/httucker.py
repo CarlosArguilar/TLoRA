@@ -45,7 +45,7 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
         col_factors = getattr(self, f"{group}col_factors")
         
         # Perform tensor contraction using Einstein summation
-        result = torch.einsum("mrc, qm, hr, kc -> hkq", 
+        result = torch.einsum("mrc, qm, hr, kc -> qhk", 
                                 core, mode_factors, row_factors, col_factors)
         # Reshape to combine the output dimensions
         return result.reshape(self.hidden_size, self.hidden_size)
