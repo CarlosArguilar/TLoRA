@@ -63,17 +63,13 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
         
         # Core tensor (compressed representation)
         self.qcore = nn.Parameter(torch.zeros(r_mode, r_row, r_col))
-        print(f"qcore size: {self.qcore.size()}")
         
         # Factor matrices
         self.qmode_factors = nn.Parameter(torch.zeros(num_heads, r_mode))  # Q/K/V mode
-        print(f"qmode_factors size: {self.qmode_factors.size()}")
         
         self.qrow_factors = nn.Parameter(torch.zeros(self.hidden_size, r_row))  # Matrix rows
-        print(f"qrow_factors size: {self.qrow_factors.size()}")
         
         self.qcol_factors = nn.Parameter(torch.zeros(self.hidden_size//num_heads, r_col))  # Matrix columns
-        print(f"qcol_factors size: {self.qcol_factors.size()}")
 
         # Core tensor (compressed representation)
         self.kcore = nn.Parameter(torch.zeros(r_mode, r_row, r_col))
@@ -115,12 +111,8 @@ class HTTuckerFactorizedTensor(FactorizedTensor, factorization_type="httucker"):
             self.qmode_factors,
             self.qrow_factors,
             self.qcol_factors
-        )
+        ).reshape(self.hidden_size, self.hidden_size)
         
-        print(f"deltas_q size before reshape: {deltas_q.size()}")
-        deltas_q = deltas_q.reshape(self.hidden_size, self.hidden_size)
-        print(f"deltas_q size after reshape: {deltas_q.size()}")
-
         deltas_k = torch.einsum(
             "mrc, qm, hr, kc -> hkq",
             self.kcore,
