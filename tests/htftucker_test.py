@@ -9,6 +9,9 @@ def test_gradient_propagation():
     num_heads = 12
     rank = 4
     model = HTFTuckerFactorizedTensor(hidden_size, rank, num_heads)
+
+    for param in model.parameters():
+        param.data.fill_(1.0)  # Set to ones for deterministic behavior
     
     # Dummy forward pass and loss computation
     deltas = model()
@@ -51,8 +54,8 @@ def test_zero_mode_factors_affect_deltas():
         
         # Verify other columns are non-zero
         assert not torch.allclose(
-            delta[:, head_dim:], 
-            torch.zeros_like(delta[:, head_dim:]),
+            delta[head_dim:, :], 
+            torch.zeros_like(delta[head_dim:, :]),
             atol=1e-8
         ), "Unexpected zero columns outside the first head!"
 
