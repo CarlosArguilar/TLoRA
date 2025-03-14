@@ -2,6 +2,10 @@
 import pytest
 import torch
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from tlora.tensor_factorization.htftucker import HTFTuckerFactorizedTensor
 
 def test_gradient_propagation():
