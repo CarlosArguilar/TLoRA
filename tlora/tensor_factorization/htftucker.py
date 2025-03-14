@@ -8,7 +8,7 @@ class HTFTuckerFactorizedTensor(FactorizedTensor, factorization_type="htftucker"
     def __init__(self, hidden_size: int, rank, num_heads: int = 12):
         # Process rank into a tuple of 3 integers
         if isinstance(rank, int):
-            rank = (rank, rank, rank)
+            rank = (rank, rank, rank, rank)
         elif isinstance(rank, tuple) and len(rank) != 4:
             raise ValueError("Rank must be an int or a tuple of 4 ints")
         
@@ -18,10 +18,10 @@ class HTFTuckerFactorizedTensor(FactorizedTensor, factorization_type="htftucker"
         r_group, r_mode, r_row, r_col = rank
         
         # Define a single core tensor with an extra dimension for groups (Q, K, V)
-        self.core = nn.Parameter(torch.zeros(r_group, r_mode, r_row, r_col))  # Shape: [3, r_mode, r_row, r_col]
+        self.core = nn.Parameter(torch.zeros(r_group, r_mode, r_row, r_col))  # Shape: [r_group, r_mode, r_row, r_col]
         
         # Shared factor matrices across Q/K/V
-        self.group_factors = nn.Parameter(torch.zeros(3, r_group))      # Shape: [3, r_group]
+        self.group_factors = nn.Parameter(torch.zeros(3, r_group))            # Shape: [3, r_group]
         self.mode_factors = nn.Parameter(torch.zeros(num_heads, r_mode))      # Shape: [num_heads, r_mode]
         self.row_factors = nn.Parameter(torch.zeros(hidden_size, r_row))      # Shape: [hidden_size, r_row]
         self.col_factors = nn.Parameter(torch.zeros(hidden_size // num_heads, r_col))  # Shape: [head_dim, r_col]
