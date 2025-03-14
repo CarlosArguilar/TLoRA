@@ -2,7 +2,7 @@ from typing import Tuple, Optional
 import torch
 from tlora.datasets.datasets import processor, DatasetFactory
 
-class CaltechUCSD2011BirdsDataset(DatasetFactory, dataset_name="caltech_ucsd_birds_2011"):
+class CaltechUCSDBirdsDataset(DatasetFactory, dataset_name="caltech_birds"):
     """Caltech-UCSD Birds-200-2011 dataset implementation following factory pattern"""
 
     def get_splits(self) -> Tuple[int, torch.utils.data.Dataset, Optional[torch.utils.data.Dataset], torch.utils.data.Dataset]:
