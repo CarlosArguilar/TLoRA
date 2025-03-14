@@ -19,8 +19,8 @@ class CaltechUCSDBirdsDataset(DatasetFactory, dataset_name="caltech_birds"):
         dataset = load_dataset("bentrevett/caltech-ucsd-birds-200-2011", cache_dir=self.root)
         
         # Apply a transformation that returns only the "image" and "label" fields.
-        train_dataset = dataset["train"].with_transform(lambda x: {"image": transform(x), "label": x["label"]})
-        test_dataset  = dataset["test"].with_transform(lambda x: {"image": transform(x), "label": x["label"]})
+        train_dataset = dataset["train"].with_transform(lambda x:  (transform(x), x["label"]))
+        test_dataset  = dataset["test"].with_transform(lambda x:  (transform(x), x["label"]))
         
         # Retrieve the number of classes from the label feature.
         num_classes = len(dataset["train"].features["label"].names)
