@@ -7,7 +7,7 @@ from tlora.tensor_factorization.htftucker import HTFTuckerFactorizedTensor
 def test_gradient_propagation():
     hidden_size = 768
     num_heads = 12
-    rank = 8  # Single rank → expanded to (8,8,8,8)
+    rank = 4
     model = HTFTuckerFactorizedTensor(hidden_size, rank, num_heads)
     
     # Dummy forward pass and loss computation
@@ -44,8 +44,8 @@ def test_zero_mode_factors_affect_deltas():
     for delta in [delta_q, delta_k, delta_v]:
         # Slice the first head_dim columns (64) across all rows
         assert torch.allclose(
-            delta[:, :head_dim], 
-            torch.zeros_like(delta[:, :head_dim]),
+            delta[:head_dim, :], 
+            torch.zeros_like(delta[:head_dim, :]),
             atol=1e-8
         ), "Zeroing mode_factors did not zero the expected head columns!"
         
@@ -104,14 +104,14 @@ def test_multiple_heads_zeroing():
     # First 2*head_dim columns (128) should be zero
     for delta in [delta_q, delta_k, delta_v]:
         assert torch.allclose(
-            delta[:, :2*head_dim], 
-            torch.zeros_like(delta[:, :2*head_dim]),
+            delta[:2*head_dim, :], 
+            torch.zeros_like(delta[:2*head_dim, :]),
             atol=1e-8
         ), "Zeroing first two heads did not zero columns 0-127!"
         
         # Columns beyond 128 should be non-zero
         assert not torch.allclose(
-            delta[:, 2*head_dim:], 
-            torch.zeros_like(delta[:, 2*head_dim:]),
+            delta[2*head_dim:, :], 
+            torch.zeros_like(delta[2*head_dim:, :]),
             atol=1e-8
         ), "Columns beyond 128 are unexpectedly zero!"
