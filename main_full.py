@@ -9,8 +9,7 @@ from transformers import ViTForImageClassification
 from torchvision import datasets, transforms
 from types import SimpleNamespace
 
-from tlora.utils import replace_attention_layers, parse_args
-from tlora.modified_layers import ModifiedViTSdpaSelfAttention
+from tlora.utils import parse_args
 from tlora.datasets import DatasetFactory
 from tlora.utils.checkpoint import save_checkpoint, load_checkpoint
 
