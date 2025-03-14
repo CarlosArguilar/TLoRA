@@ -4,12 +4,6 @@ import torch
 
 from tlora.tensor_factorization import FactorizedTensor
 
-import torch.nn as nn
-import torch.nn.functional as F
-import torch
-
-from tlora.tensor_factorization import FactorizedTensor
-
 class HTFTuckerFactorizedTensor(FactorizedTensor, factorization_type="htftucker"):
     def __init__(self, hidden_size: int, rank, num_heads: int = 12):
         # Process rank into a tuple of 3 integers
