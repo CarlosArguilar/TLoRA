@@ -18,15 +18,11 @@ class CaltechUCSDBirdsDataset(DatasetFactory, dataset_name="caltech_birds"):
         # Load the dataset from Hugging Face.
         dataset = load_dataset("bentrevett/caltech-ucsd-birds-200-2011", cache_dir=self.root)
         
-        # Create a train/validation split from the original training data (e.g. 90% train, 10% validation).
-        split = dataset["train"].train_test_split(test_size=0.1)
-        train_dataset = split["train"].with_transform(lambda x: {**x, "image": transform(x)})
-        val_dataset = split["test"].with_transform(lambda x: {**x, "image": transform(x)})
-        
-        # Apply the transform to the test split.
-        test_dataset = dataset["test"].with_transform(lambda x: {**x, "image": transform(x)})
+        # Apply a transformation that returns only the "image" and "label" fields.
+        train_dataset = dataset["train"].with_transform(lambda x: {"image": transform(x), "label": x["label"]})
+        test_dataset  = dataset["test"].with_transform(lambda x: {"image": transform(x), "label": x["label"]})
         
         # Retrieve the number of classes from the label feature.
         num_classes = len(dataset["train"].features["label"].names)
         
-        return num_classes, train_dataset, val_dataset, test_dataset
+        return num_classes, train_dataset, None, test_dataset
