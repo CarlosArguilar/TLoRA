@@ -3,7 +3,7 @@ from typing import Tuple
 import torch
 from datasets import load_dataset
 
-class CaltechUCSDBirdsDataset(DatasetFactory, dataset_name="caltech_ucsd_birds"):
+class CaltechUCSDBirdsDataset(DatasetFactory, dataset_name="caltech_birds"):
     """Caltech-UCSD Birds-200-2011 dataset implementation following the factory pattern.
     
     Each example in this dataset consists of an image, a label, and a bounding box.
