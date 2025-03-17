@@ -45,8 +45,8 @@ def objective(trial):
         "batch_size": 128,
         "num_epochs": 50,       # Or fewer if you want faster trials
         "num_workers": 2,
-        "dataset": "fgvc_aircraft",
-        "factorization": "tucker3",
+        "dataset": "caltech_birds",
+        "factorization": "htftucker",
         "compile_model": False,
         "checkpoint_path": None,
         
