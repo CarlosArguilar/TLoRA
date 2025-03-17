@@ -173,6 +173,9 @@ def main(**kwargs):
         print(f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
         print(f"Val Accuracy: {val_acc*100:.2f}% (Best: {best_acc*100:.2f}%)")
 
+        if hasattr(kwargs, "pruning_callback") and kwargs.pruning_callback is not None:
+            kwargs.pruning_callback(val_acc, epoch)
+
     return best_acc
 
 if __name__ == "__main__":
