@@ -5,8 +5,7 @@ class CustomEpochPruner(optuna.pruners.BasePruner):
     def __init__(self):
         # Define the epochs and their minimum acceptable validation accuracy.
         self.criteria = {  # At epoch {key}, prune if val < {value}%
-            10: 0.85, 
-            25: 0.865, 
+            25: 0.85, 
             35: 0.87,
         }
 
