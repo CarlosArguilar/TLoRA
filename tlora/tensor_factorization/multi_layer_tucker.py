@@ -31,7 +31,6 @@ class MultiLayerTucker(FactorizedTensor, factorization_type="multi_layer_tucker"
         nn.init.orthogonal_(self.col_factors)
 
     def forward(self, id_layer: int):
-        print(f'forward called with id: {id_layer}')
         # Shape of `result`: [num_layers, 3, hidden_size, hidden_size]
         result = torch.einsum(
             "lmrc, dl, qm, hr, kc -> dqhk", 

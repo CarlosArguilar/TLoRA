@@ -33,7 +33,6 @@ class FactorizedTensor(ABC, nn.Module):
             if key not in cls._cache:
                 instance = cls._registry[factorization_type](hidden_size, rank, **kwargs)
                 cls._cache[key] = (instance, 0)
-            print(f'Creating multi layer factorization with key: {factorization_type}, {hidden_size}, {rank}, id:{cls._cache[key][1]}')
             instance, current_id = cls._cache[key]
             ret_id = current_id
             # Increment the counter for the next call
