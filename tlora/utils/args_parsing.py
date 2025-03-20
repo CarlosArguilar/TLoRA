@@ -4,13 +4,13 @@ def parse_rank(s):
     try:
         if ',' in s:
             parts = s.split(',')
-            if len(parts) != 3:
-                raise ValueError("Rank tuple must have exactly 3 integers")
+            if (len(parts) != 3) and (len(parts) != 4):
+                raise ValueError("Rank tuple must have exactly 3 or 4 integers")
             return tuple(int(p.strip()) for p in parts)
         else:
             return int(s)
     except Exception as e:
-        raise argparse.ArgumentTypeError("Rank must be an integer or a comma-separated tuple of 3 integers")
+        raise argparse.ArgumentTypeError("Rank must be an integer or a comma-separated tuple of 3 or 4 integers")
     
 def print_args(args):
     """Prints the parsed command-line arguments in a formatted way."""
