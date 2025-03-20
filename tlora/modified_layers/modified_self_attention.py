@@ -13,7 +13,7 @@ class ModifiedViTSdpaSelfAttention(ViTSelfAttention):
             param.requires_grad = False
 
         # Initialize factorization through factory
-        self.factorization = FactorizedTensor.create(
+        self.factorization, self.factorization_layer_id = FactorizedTensor.create(
             factorization_type=factorization,
             hidden_size=config.hidden_size,
             rank=rank
@@ -23,8 +23,11 @@ class ModifiedViTSdpaSelfAttention(ViTSelfAttention):
         if output_attentions or head_mask is not None:
             return super().forward(hidden_states, head_mask, output_attentions)
 
-        # Get adaptation deltas
-        delta_q, delta_k, delta_v = self.factorization()
+        if self.factorization_layer_id is not None:
+            delta_q, delta_k, delta_v = self.factorization(self.factorization_layer_id)
+        else:
+            delta_q, delta_k, delta_v = self.factorization()
+
 
         # Efficient weight adaptation without in-place modification
         query = F.linear(hidden_states, self.query.weight + delta_q, self.query.bias)
