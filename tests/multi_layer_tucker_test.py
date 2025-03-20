@@ -3,10 +3,10 @@ import torch
 import torch.nn as nn
 import sys
 import os
-# Adjust the import path as necessary
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from your_module_path.multi_layer_tucker import MultiLayerTucker  # Adjust the import path accordingly
+from tlora.tensor_factorization.multi_layer_tucker import MultiLayerTucker  # Adjust the import path accordingly
 
 def test_gradient_propagation():
     hidden_size = 768
