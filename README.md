@@ -33,19 +33,19 @@ The project tests these techniques on image classification tasks (e.g., **CIFAR-
 Below is a brief summary of each factorization approach implemented in this project.
 
 ### LoRA (Low-Rank Adaptation)
-Introduced in [1], **LoRA** replaces the full matrix \(\mathbf{W}\) with
-\[
+Introduced in [1], **LoRA** replaces the full matrix $\mathbf{W}$ with
+$$
 \mathbf{W} + \mathbf{A}\mathbf{B},
-\]
-where \(\mathbf{A}\in\mathbb{R}^{d\times r}\) and \(\mathbf{B}\in\mathbb{R}^{r\times d}\) have a small rank \(r \ll d\). Instead of modifying all of \(\mathbf{W}\), only \(\mathbf{A}\) and \(\mathbf{B}\) are learned, drastically reducing trainable parameters.
+$$
+where $\mathbf{A}\in\mathbb{R}^{d\times r}$ and $\mathbf{B}\in\mathbb{R}^{r\times d}$ have a small rank $r \ll d$. Instead of modifying all of $\mathbf{W}$, only $\mathbf{A}$ and $\mathbf{B}$ are learned, drastically reducing trainable parameters.
 
 ### CP (Canonical Polyadic)
 **CP decomposition** (also known as PARAFAC) factorizes a 3D tensor into a sum of rank-1 outer products. For adaptation, we treat Q, K, V as slices of a 3D tensor and decompose them into three low-rank factor matrices.
 
 ### Tucker (Tucker2, Tucker3)
 **Tucker decomposition** [2] is a higher-order extension of SVD that factorizes a tensor into a core tensor multiplied by factor matrices along each mode. This can be done as:
-- **Tucker2**: a core \(\mathbf{G}\in\mathbb{R}^{r\times r \times 3}\) (for Q, K, V) and two factor matrices (\(\mathbf{U},\mathbf{V}\)).
-- **Tucker3**: a core \(\mathbf{G}\in\mathbb{R}^{r_m \times r_r \times r_c}\) and three factor matrices for the modes, rows, and columns.
+- **Tucker2**: a core $\mathbf{G}\in\mathbb{R}^{r\times r \times 3}$ (for Q, K, V) and two factor matrices ($\mathbf{U},\mathbf{V}$).
+- **Tucker3**: a core $\mathbf{G}\in\mathbb{R}^{r_m \times r_r \times r_c}$ and three factor matrices for the modes, rows, and columns.
 
 ### HTTucker
 **HTTucker** is designed to incorporate per-head updates for **Q, K, V** individually. Each head and each matrix (Q/K/V) gets its own small Tucker core and set of factor matrices, enabling the adapter to learn head-specific adjustments with a modest parameter overhead.
@@ -141,12 +141,12 @@ We conducted experiments on **CIFAR-10** and **Caltech-UCSD Birds 200** fine-tun
 ### Observations and Interpretations
 
 - **CIFAR-10**:  
-  - All factorization methods can achieve high accuracy (>98%), with **HTTucker** at \(R=8\) slightly leading at **98.58%**.  
-  - Tucker and CP are also strong contenders; Tucker at \(R=8\) reaches **98.54%** with moderate parameter overhead.  
+  - All factorization methods can achieve high accuracy (>98%), with **HTTucker** at $R=8$ slightly leading at **98.58%**.  
+  - Tucker and CP are also strong contenders; Tucker at $R=8$ reaches **98.54%** with moderate parameter overhead.  
   - Even **Multi-Layer Tucker** retains strong performance with very few added parameters.
 
 - **Caltech-UCSD Birds 200**:  
-  - Notably, **CP** at \(R=8\) yields **87.16%**, outperforming full QKV fine-tuning (85.40%) while using far fewer trainable parameters.  
+  - Notably, **CP** at $R=8$ yields **87.16%**, outperforming full QKV fine-tuning (85.40%) while using far fewer trainable parameters.  
   - Tucker-based methods are also competitive, hovering around 86–87% accuracy.  
   - **Classifier Only** sits at ~85.35%, highlighting that rank-based methods significantly improve upon naive partial fine-tuning.
 
