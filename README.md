@@ -34,9 +34,9 @@ Below is a brief summary of each factorization approach implemented in this proj
 
 ### LoRA (Low-Rank Adaptation)
 Introduced in [1], **LoRA** replaces the full matrix $\mathbf{W}$ with
-$$
+$
 \mathbf{W} + \mathbf{A}\mathbf{B},
-$$
+$
 where $\mathbf{A}\in\mathbb{R}^{d\times r}$ and $\mathbf{B}\in\mathbb{R}^{r\times d}$ have a small rank $r \ll d$. Instead of modifying all of $\mathbf{W}$, only $\mathbf{A}$ and $\mathbf{B}$ are learned, drastically reducing trainable parameters.
 
 ### CP (Canonical Polyadic)
